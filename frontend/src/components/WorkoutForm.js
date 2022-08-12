@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useWorkoutContext } from "../hooks/useWorkoutContext";
-
+import { useAuthContext } from "../hooks/useAuthContext";
 const WorkoutForm = () => {
   const { dispatch } = useWorkoutContext();
+  const { user } = useAuthContext();
 
   const [title, setTitle] = useState("");
   const [load, setLoad] = useState("");
@@ -11,6 +12,12 @@ const WorkoutForm = () => {
   const [emptyfield, setEmptyfield] = useState([]);
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!user) {
+      setError("You must be logged in");
+      return;
+    }
+
     const workout = { title, load, reps };
 
     const response = await fetch("/api/workouts", {
@@ -18,6 +25,7 @@ const WorkoutForm = () => {
       body: JSON.stringify(workout),
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
       },
     });
     const json = await response.json();
@@ -41,13 +49,31 @@ const WorkoutForm = () => {
     <form className="create" onSubmit={handleSubmit}>
       <h3>Add a new workout</h3>
       <label htmlFor="title">Exercise Title:</label>
-      <input id="title" type="text" className={emptyfield.includes("title") ? "error" : ""} onChange={(e) => setTitle(e.target.value)} value={title} />
+      <input
+        id="title"
+        type="text"
+        className={emptyfield.includes("title") ? "error" : ""}
+        onChange={(e) => setTitle(e.target.value)}
+        value={title}
+      />
 
       <label htmlFor="load">Load (kg):</label>
-      <input id="load" type="number" className={emptyfield.includes("load") ? "error" : ""} onChange={(e) => setLoad(e.target.value)} value={load} />
+      <input
+        id="load"
+        type="number"
+        className={emptyfield.includes("load") ? "error" : ""}
+        onChange={(e) => setLoad(e.target.value)}
+        value={load}
+      />
 
       <label htmlFor="reps">Reps:</label>
-      <input id="reps" type="number" className={emptyfield.includes("reps") ? "error" : ""} onChange={(e) => setReps(e.target.value)} value={reps} />
+      <input
+        id="reps"
+        type="number"
+        className={emptyfield.includes("reps") ? "error" : ""}
+        onChange={(e) => setReps(e.target.value)}
+        value={reps}
+      />
 
       <button onSubmit={handleSubmit}>Add workout</button>
       {/* <input type="submit" value="Add workout" /> */}
